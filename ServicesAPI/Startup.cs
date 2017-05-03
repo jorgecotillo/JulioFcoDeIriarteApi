@@ -42,6 +42,10 @@ namespace ServicesAPI
             services.AddMvcCore()
                     .AddAuthorization()
                     .AddJsonFormatters();
+
+            // reporting api versions will return the headers "api-supported-versions" and "api-deprecated-versions"
+            // NOTE: Important line to be added otherwise Versioning won't work
+            services.AddApiVersioning(o => o.ReportApiVersions = true);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
