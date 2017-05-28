@@ -17,7 +17,7 @@ namespace ServicesAPI.Controllers
 {
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class ManageController : Controller
     {
         readonly IConfigurationRoot _configuration;
