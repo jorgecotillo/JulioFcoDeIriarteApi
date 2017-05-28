@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ServicesAPI.Models;
+using ServicesAPI.Interfaces;
 
 namespace ServicesAPI
 {
@@ -46,6 +48,11 @@ namespace ServicesAPI
             // reporting api versions will return the headers "api-supported-versions" and "api-deprecated-versions"
             // NOTE: Important line to be added otherwise Versioning won't work
             services.AddApiVersioning(o => o.ReportApiVersions = true);
+
+            services.AddSingleton(Configuration);
+
+            services.AddTransient<INotificationStore, NotificationStore>();
+            services.AddTransient<INotificationHubStore, NotificationHubStoreModel>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Azure.NotificationHubs;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
+using ServicesAPI.Models;
+using MongoDB.Bson;
+using ServicesAPI.Interfaces;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -16,23 +20,47 @@ namespace ServicesAPI.Controllers
     //[Authorize]
     public class ManageController : Controller
     {
-        public async Task<JsonResult> SendNotification(string messageToBroadcast)
+        readonly IConfigurationRoot _configuration;
+        readonly INotificationStore _notificationStore;
+        readonly INotificationHubStore _notificationHubStore;
+
+        public ManageController(
+            IConfigurationRoot configuration, 
+            INotificationStore notificationStore,
+            INotificationHubStore notificationHubStore)
         {
-            NotificationHubClient hub =
-                NotificationHubClient
-                .CreateClientFromConnectionString("<connection string with full access>", "<hub name>");
+            _configuration = configuration;
+            _notificationStore = notificationStore;
+            _notificationHubStore = notificationHubStore;
+        }
 
-            var message = new
+        [Route("notification")]
+        [HttpPost]
+        public async Task<JsonResult> SendNotification([FromBody]NotificationModel notification)
+        {
+            if (ModelState.IsValid)
             {
-                data = new
-                {
-                    message = messageToBroadcast
-                }
-            };
+                await _notificationStore
+                    .SaveNotification(notification: notification);
 
-            await hub.SendGcmNativeNotificationAsync(JsonConvert.SerializeObject(message));
+                await _notificationHubStore
+                    .SendNotificationHub(notification);
+                
+                return Json(new { message = "Ok" });
+            }
+            else
+            {
+                HttpContext.Response.StatusCode = 400;
+                return Json(new { message = "Invalid values received" });
+            }
+        }
 
-            return Json(new { message = "Ok" });
+        [Route("notification")]
+        [HttpGet]
+        public async Task<IEnumerable<NotificationModel>> Get()
+        {
+            return 
+                await _notificationStore.GetAllNotifications();
         }
     }
 }
